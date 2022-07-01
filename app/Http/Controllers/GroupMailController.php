@@ -515,12 +515,14 @@ class GroupMailController extends Controller
             //     }
             // }
         }
-        // dd($head_me);
+        // dd($notin);
         if(!empty($head_me))    $to_notin[] = $head_me;
-        if(count($notin['all'])>0){
-            foreach ($notin['all'] as $key => $value) {
-                $to_notin[] = $key;
-            }            
+        if(!empty($notin['all'])) {
+            if(count($notin['all'])>0){
+                foreach ($notin['all'] as $key => $value) {
+                    $to_notin[] = $key;
+                }            
+            }
         }
         // dd($to_notin);
 
@@ -846,6 +848,7 @@ class GroupMailController extends Controller
     }
 
     public function to_find($id){
+        $gmr_all = array();
         //หากลุ่มที่เกี่ยวข้อง        
         $query = new GroupMailRelation;
         $query = $query->where('status', 1);
