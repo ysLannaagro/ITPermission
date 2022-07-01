@@ -219,6 +219,7 @@ class FolderController extends Controller
             $gm_all[$key->id] = $key->name;
         }
 
+        $gmr_all = array(); 
         $query = GroupMailRelation::where('status',1)->get();
         foreach ($query as $key) {
             $gmr_all['up'][$key->group_mail_detail][$key->group_mail_main] = $key->id;
