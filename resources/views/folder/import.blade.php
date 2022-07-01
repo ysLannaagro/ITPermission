@@ -68,7 +68,9 @@
                                                 <br>
                                                 <button class="btn btn-success">Import</button>
                                                 {{-- <a class="btn btn-warning" href="{{ route('quiz_export') }}">Export</a> --}}
-                                                <div class="col-auto" style="float: right; margin-right: 10%; width:50%"><a href="{{ asset('assets/file/show_folder.xlsx') }}">ตัวอย่างไฟล์..</a></div>
+                                                <div class="col-auto" style="float: right; margin-right: 10%; width:50%">
+                                                    <a href="{{ asset('assets/file/folder_in_group.xlsx') }}">ตัวอย่างไฟล์..</a>
+                                                </div>
                                             </div>
                                         </form>  
                                     </div><!--//app-card-body-->
