@@ -53,7 +53,7 @@
                 <h3 class="col">{{ __('Folder ในกลุ่ม') }} -> {{ $gm->name }}</h3>                    
             </div>
             
-            <div class="tab-content" id="orders-table-tab-content">                
+            <div class="tab-content" id="orders-table-tab-content"  style="overflow: auto; max-height: 300px;">                
                 <div class="app-card app-card-orders-table shadow-sm mb-5">
                     <div class="app-card-body">
                         <form method="POST" action="{{ route('group_mail.folder', $gm->id) }}">
@@ -172,16 +172,16 @@
                                                             @foreach ($fig_other[$value2] as $kid=>$vid)                    
                                                                 <tr>                                
                                                                     <td class="cell">{{ ++$row }}</td> 
-                                                                    <td class="cell">{{ $folder[$fig[$kid]['f_id']]['name'] }}</td>
+                                                                    <td class="cell">{{ $folder[$vid]['name'] }}</td>
                                                                     <td class="cell">
-                                                                        <input full_id="{{ $fig[$kid]['f_id'] }}" class="form-check-input set_full" type="checkbox" 
+                                                                        <input full_id="{{ $vid }}" class="form-check-input set_full" type="checkbox" 
                                                                             value="" id="set_full[{{ $kid }}]"
-                                                                            @if($fig[$kid]['full']==1) checked @endif onchange="handleChange(event, {{ $kid }}, 'full')">
+                                                                            @if($fig_all[$kid]['full']==1) checked @endif onchange="handleChange(event, {{ $kid }}, 'full')">
                                                                     </td>
                                                                     <td class="cell">
-                                                                        <input read_id="{{ $fig[$kid]['f_id'] }}" class="form-check-input set_read" type="checkbox" 
+                                                                        <input read_id="{{ $vid }}" class="form-check-input set_read" type="checkbox" 
                                                                             value="" id="set_read[{{ $kid }}]"
-                                                                            @if($fig[$kid]['read']==1) checked @endif onchange="handleChange(event, {{ $kid }}, 'read')">
+                                                                            @if($fig_all[$kid]['read']==1) checked @endif onchange="handleChange(event, {{ $kid }}, 'read')">
                                                                     </td>
                                                                     <td class="cell">
                                                                         <a class="text-danger" href="{{ route('group_mail.folder_del',$kid) }}">

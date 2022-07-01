@@ -840,7 +840,7 @@ class GroupMailController extends Controller
         $query = $query->orderBy('mails.name')->get();
         // dd($query);
         foreach ($query as $key) {
-            $mig_other[$key->group_mail_id][] = $key->mail_id;
+            $mig_other[$key->group_mail_id][$key->id] = $key->mail_id;
         }
         // dd($mig_other);
 
@@ -955,12 +955,21 @@ class GroupMailController extends Controller
         $folder_add = array();
         $not_in = array();
 
-        $gm = GroupMail::findOrFail($id);        
+        $gm = GroupMail::findOrFail($id);    
+        //หา full, read ทุกตัว
+        $query = FolderInGroup::where('status', 1)->get();
+        foreach ($query as $key) {
+            $fig_all[$key->id]['full'] = $key->to_full;
+            $fig_all[$key->id]['read'] = $key->to_read; 
+        }
+
         //หา folder id แม้ว่าจะมีตัว search อยู่
         $query = FolderInGroup::where('group_mail_id', $id)->where('status', 1)->get();
         foreach ($query as $key) {
             $not_in[] = $key->folder_id;
         }
+
+        //หา folder id มีตัว search อยู่
         $query = new FolderInGroup;
         $query = $query->join('folders', 'folder_in_groups.folder_id', '=', 'folders.id');
         $query = $query->select('folder_in_groups.id', 'folder_in_groups.folder_id', 'folders.name', 'folder_in_groups.to_full', 'folder_in_groups.to_read');
@@ -1031,16 +1040,16 @@ class GroupMailController extends Controller
         $query = $query->join('folders', 'folder_in_groups.folder_id', '=', 'folders.id');
         $query = $query->select('folder_in_groups.id', 'folder_in_groups.group_mail_id', 'folder_in_groups.folder_id', 'folders.name');
         $query = $query->whereIn('folder_in_groups.group_mail_id', $ig_search)->where('folder_in_groups.status', 1);
-        if(!empty($txt_search)){
-            $query = $query->where('folders.name', 'like', '%'.$txt_search.'%');
+        if(!empty($txt_folder)){
+            $query = $query->where('folders.name', 'like', '%'.$txt_folder.'%');
         } 
         $query = $query->orderBy('folders.name')->get();
         // dd($query);
         foreach ($query as $key) {
-            $fig_other[$key->group_mail_id][] = $key->folder_id;
+            $fig_other[$key->group_mail_id][$key->id] = $key->folder_id;
         }
-        // dd($mig_other);
-        return view('group_mail.folder',compact('gm','fig','folder','folder_add', 'gm_name', 'to_in_group'));
+        // dd($fig_other);
+        return view('group_mail.folder',compact('gm','fig','folder','folder_add', 'gm_name', 'to_in_group','fig_other','fig_all'));
     }
 
     public function folder(Request $request, $id)
