@@ -77,6 +77,8 @@ class GroupMailController extends Controller
         }
         Session::put('txt_mail', '');
         Session::put('txt_folder', '');
+        Session::put('txt_folder_search', ''); 
+        Session::put('txt_mail_search', ''); 
 
         $query = array(); 
         $gm_all_show = array(); 

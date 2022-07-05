@@ -207,11 +207,6 @@
 
         </div><!--//container-fluid-->
     </div><!--//app-content--> 
-    {{-- <script>
-        $( document ).ready(function() {
-            $('.mdb-select').selectpicker();
-        });
-    </script> --}}
     <script type="text/javascript" src="{{ asset('assets/bootstrap/js/jquery-1.7.1.min.js') }}"></script> 
     <script>        
         var input = document.getElementById("txt_folder");
@@ -226,20 +221,11 @@
             // console.log(document.getElementsByClassName("form-select")[sort].value);
             if(document.getElementsByClassName("form-select")[sort].value){
                 var table = document.getElementById("myTable");
-                // let numb = table.rows.length-2;
-                // for (let i = numb; i > sort+1; i--) {
-                //     table.deleteRow(i);
-                // }
 
                 // นับว่ามี select กี่ตัว ไว้ใช้ตอนวน loop ตัดค่าออก
                 var  titleElement = document.getElementsByClassName("form-select");  
                 let c_s = titleElement.length;
-                // var  txt_old = document.getElementsByClassName("old_main");  
                 var  txt_old = <?php echo json_encode($fig); ?>;
-                // let txt_old_main = txt_old.length;
-                // console.log('count='+c_s);
-                // console.log(txt_old_main);
-                // console.log(txt_old);
 
                 var data_select = [];
                 for (let i = 0; i < c_s; i++) {
@@ -253,14 +239,6 @@
                 for(const [key, value] of Object.entries(txt_old)){
                     data_select[value] = 1;
                 }
-                // for (let i = 0; i < txt_old_main; i++) {
-                //     if(txt_old[i].value){
-                //         // var  test = document.getElementsByClassName("form-select")[i].value;
-                //         // data_select.push(test);
-                //         data_select[txt_old[i].value] =1;
-                //     }
-                // }
-                // console.log(data_select);
                 if(document.getElementsByClassName("form-select")[(c_s-1)].value){
                     var obj = <?php echo json_encode($folder_add); ?>;
                     // console.log(obj);

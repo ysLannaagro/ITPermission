@@ -8,6 +8,7 @@ use Shuchkin\SimpleXLSX;
 use App\Models\GroupMail;
 use App\Models\FolderInGroup;
 use App\Models\GroupMailRelation;
+use Session;
 
 class FolderController extends Controller
 {
@@ -18,12 +19,21 @@ class FolderController extends Controller
     
     public function index(Request $request)
     {
+        Session::put('txt_mail_search', ''); 
+        Session::put('txt_search', ''); 
+        Session::put('set_col', ''); 
+        Session::put('txt_mail', '');
+        Session::put('txt_folder', '');
+        if(!empty($request->page_main)){
+            Session::put('txt_folder_search', $request->txt_search); 
+        }
         $txt_search ='';
         $folder = array();
         $folder = new Folder;
         $folder = $folder->where('status', 1);
-        if(!empty($request->txt_search)){
-            $txt_search = $request->txt_search;       
+        // if(!empty($request->txt_search)){
+        if(!empty(Session::get('txt_folder_search'))){
+            $txt_search = Session::get('txt_folder_search');       
         //     // dd($txt_search);      
             $folder = $folder->where('name', 'like', '%'.$txt_search.'%');
         }            
@@ -120,6 +130,58 @@ class FolderController extends Controller
             $uploadfile = $destinationPath  . "/" . $name;              
             
             if ($xlsx = SimpleXLSX::parse($uploadfile)) {   
+                if(count($xlsx->rows()[0])==2){ 
+                    $query = array();
+                    $query = Folder::where('status', 1)->get();
+                    foreach ($query as $key) {
+                        $folder[$key->name] = $key->id;
+                    } 
+                    // dd($gm);
+                    foreach ($xlsx->rows() as $r => $row) {                                                                      
+                        if ($r > 0 && !empty(trim($row[1]))) {  
+                            if(empty($folder[trim($row[1])])){
+                                $add_fd = array();
+                                $add_fd['name'] = trim($row[1]);
+                                $fd_id = Folder::create($add_fd)->id;
+                                $folder[trim($row[0])] = $fd_id;
+                            }                                      
+                        }
+                    }
+                    return back()->with('success','Import successfully');  
+                }else{
+                    return back()->with('error','คอลัมน์เกินกว่าที่กำหนด');
+                }
+            } else {
+                echo SimpleXLSX::parseError();
+            }   
+        }else{
+            return back()->with('error','No file');
+        } 
+        
+    }
+
+    public function import_relation(Request $request) 
+    {
+        $requestData = $request->all();
+        $completedirectory = 'storage/app/public/upload/folder/';  
+
+        if ($request->hasFile('file_upload')) {
+            // $tmpfolder = md5(time());
+            $tmpfolder = date('Ymd');
+            if (!is_dir($completedirectory . '/' . $tmpfolder)) {
+                mkdir($completedirectory . '/' . $tmpfolder, 0777, true);
+            }  
+
+            $zipfile = $request->file('file_upload');
+            $uploadname = $zipfile->getClientOriginalName();
+            $name = md5($zipfile->getClientOriginalName() . time()) . '-upload.' . $zipfile->getClientOriginalExtension();
+            $destinationPath = public_path($completedirectory . $tmpfolder);
+            $zipfile->move($destinationPath, $name);
+
+            $uploadpath = $completedirectory . "/" . $tmpfolder  . "/" . $name;
+            $uploadfile = $destinationPath  . "/" . $name;              
+            
+            if ($xlsx = SimpleXLSX::parse($uploadfile)) {   
                 $query = array();
                 $query = Folder::where('status', 1)->get();
                 foreach ($query as $key) {
@@ -130,12 +192,20 @@ class FolderController extends Controller
                 foreach ($query as $key) {
                     $gm[$key->name] = $key->id;
                 } 
+
+                $query = FolderInGroup::where('status', 1)->get();
+                foreach ($query as $key) {
+                    $fig_data[$key->folder_id][$key->group_mail_id] = $key->id;
+                } 
                 // dd($gm);
                 foreach ($xlsx->rows() as $r => $row) { 
+                    // echo $r.'</br>';
+                    // dd('empty-');
                     if($r==1){
                         $i = 1;
-                        // dd(!empty(trim($row[32])));
-                        while (isset($row[$i])) {
+                        $group_id = array();
+                        // dd('empty-'.$r);
+                        while (!empty($row[$i])) {
                             // echo $row[$i].'</br>';
                             if(empty($gm[trim($row[$i])])){
                                 $add_gm = array();
@@ -147,8 +217,9 @@ class FolderController extends Controller
                             $i++;
                         }
                         // dd($group_id);
-                    }                                                
-                    if ($r > 1 && !empty(trim($row[0]))) {  
+                    }                                              
+                    if ($r > 1 && !empty(trim($row[0]))) { 
+                        // dd('empty-'.$r); 
                         if(empty($folder[trim($row[0])])){
                             $add_fd = array();
                             $add_fd['name'] = trim($row[0]);
@@ -156,27 +227,32 @@ class FolderController extends Controller
                             $folder[trim($row[0])] = $fd_id;
                         }
                         $folder_id[$r] = $folder[trim($row[0])];
+                        // echo $folder_id[$r].'->'.$folder[trim($row[0])].'</br>';
+                        // dd($group_id);
                         foreach ($group_id as $key => $value) {
-                            if(!empty(trim($row[$key]))){
-                                $to_save = array();
-                                $to_save['folder_id'] = $folder_id[$r];                                 
-                                $to_save['group_mail_id'] = $value;                                 
-                                if(trim($row[$key])=='F')   $to_save['to_full'] = 1; 
-                                else     $to_save['to_full'] = 0;                               
-                                if(trim($row[$key])=='R')   $to_save['to_read'] = 1; 
-                                else     $to_save['to_read'] = 0;  
-                                $chk_fig = FolderInGroup::where('status',1)->where('folder_id', $folder_id[$r])->where('group_mail_id', $value)->count();
-                                if($chk_fig==0){
-                                    FolderInGroup::create($to_save);
-                                }else{
-                                    // print_r($to_save);
-                                    // echo '</br>';
-                                    FolderInGroup::where('status',1)->where('folder_id', $folder_id[$r])->where('group_mail_id', $value)->update($to_save);
-                                }
-                            }
-                        }                    
+                            // if($key==1)  echo $key.'</br>';
+                            if(!empty($row[$key])){
+                                $use_gm[$folder_id[$r]][$value] = trim($row[$key]);                     
+                            } 
+                        }  
                     }
-                }
+                } 
+                foreach ($use_gm as $kfolder => $vfolder) {
+                    foreach ($vfolder as $kgm => $vgm) {
+                        $to_save = array();
+                        $to_save['folder_id'] = $kfolder;
+                        $to_save['group_mail_id'] = $kgm;
+                        if($vgm=='F')   $to_save['to_full'] = 1; 
+                        else     $to_save['to_full'] = 0;                               
+                        if($vgm=='R')   $to_save['to_read'] = 1; 
+                        else     $to_save['to_read'] = 0; 
+                        if(empty($fig_data[$kfolder][$kgm])){ 
+                            FolderInGroup::create($to_save);
+                        }else{
+                            FolderInGroup::where('id', $fig_data[$kfolder][$kgm])->update($to_save); 
+                        }
+                    }
+                }       
                 return back()->with('success','Import successfully');  
             } else {
                 echo SimpleXLSX::parseError();
@@ -232,6 +308,7 @@ class FolderController extends Controller
         $loop = 0;
         $to_down = array();
         $set_group = array();
+        $f_r = array();
         $row_id = array();        
         $not_in = array();      
         $chk_duplicate = array();
@@ -239,6 +316,8 @@ class FolderController extends Controller
         foreach ($folder_grorp as $key) {
             // echo $key->group_mail_id.'</br>'; 
             $set_group[$loop][] = $key->group_mail_id;
+            $f_r[$loop]['full'] = $key->to_full;
+            $f_r[$loop]['read'] = $key->to_read;
             $row_id[$loop] = $key->id;
             $chk_det = $key->group_mail_id;
 
@@ -301,7 +380,7 @@ class FolderController extends Controller
         //เพิ่มกลุ่ม ต้องไม่มีกลุ่ม+หัว+หาง ของกลุ่มที่มีแล้ว
         $group_add = GroupMail::whereNotIn('id', $not_in)->where('status', 1)->orderBy('name')->get();
         
-        return view('folder.group', compact('folder','id','gm_all','set_group','max_col','chk_duplicate','group_add','gmr_all','row_id'));
+        return view('folder.group', compact('folder','id','gm_all','set_group','max_col','chk_duplicate','group_add','gmr_all','row_id','f_r'));
     }
 
     public function group(Request $request, $id)

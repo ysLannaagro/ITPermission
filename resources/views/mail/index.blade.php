@@ -23,8 +23,9 @@
                     <div class="row g-2 justify-content-start justify-content-md-end align-items-center">	
                         <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" method="GET" id="frm_search">
                             <input type="search" class="form-control form-control-dark" id="txt_search" name="txt_search" 
-                            placeholder="Search..." aria-label="Search" value="{{ $txt_search }}">
+                            placeholder="Search..." aria-label="Search" value="{{ Session::get('txt_mail_search') }}">
                             {{-- <input type="button" class="btn btn-success" value="Search" onClick="this.form.action='{{ route('wh_rm.index') }}'; submit()"> Name/LACO Name/E-Mail --}}
+                            <input type="hidden" id="page_main" name="page_main" value="1"/>
                         </form>	
                         <div class="col-auto">				    
                             <a class="btn btn-dark" href="{{ route('mail_import_view') }}">

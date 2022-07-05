@@ -52,7 +52,9 @@
                             <thead>
                                 <tr style="text-align: center">
                                     <th class="cell" rowspan="2" style="width:5%">No.</th>
-                                    <th class="cell" colspan="{{ $max_col }}">ลำดับขั้น</th>
+                                    <th class="cell" colspan="{{ $max_col }}">ลำดับขั้น</th>                                    
+                                    <th class="cell" rowspan="2" style="width:10%">Full</th>
+                                    <th class="cell" rowspan="2" style="width:10%">Read</th>
                                     <th class="cell" rowspan="2" style="width:5%"></th>
                                 </tr>
                                 <tr style="text-align: center">
@@ -60,7 +62,7 @@
                                         <th class="cell" style="width:{{ 90/$max_col }}%">{{ $i+1 }}</th>
                                     @endfor --}}
                                     @for($i=$max_col; $i>0; $i--)
-                                        <th class="cell" style="width:{{ 90/$max_col }}%">{{ $i }}</th>
+                                        <th class="cell" style="width:{{ 70/$max_col }}%">{{ $i }}</th>
                                     @endfor
                                 </tr>
                             </thead>
@@ -90,6 +92,16 @@
                                                 $loop++; 
                                             @endphp
                                         @endfor
+                                        <td class="cell">
+                                            <input class="form-check-input set_full" type="checkbox" 
+                                                value="" id="set_full[{{ $row_id[$key] }}]"
+                                                @if($f_r[$key]['full']==1) checked @endif onchange="handleChange(event, {{ $row_id[$key] }}, 'full')">
+                                        </td>
+                                        <td class="cell">
+                                            <input class="form-check-input set_read" type="checkbox" 
+                                                value="" id="set_read[{{ $row_id[$key] }}]"
+                                                @if($f_r[$key]['read']==1) checked @endif onchange="handleChange(event, {{ $row_id[$key] }}, 'read')">
+                                        </td>
                                         <td class="cell" style="text-align: left;">
                                             <a class="text-danger" href="{{ route('folder.group_del',$row_id[$key]) }}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
@@ -101,7 +113,7 @@
                                 @endforeach
                                 <tr>                                                     
                                     <td class="cell" style="text-align: center;">{{ ++$row }}</td> 
-                                    <td class="cell" colspan="{{ $max_col+1 }}">
+                                    <td class="cell" colspan="{{ $max_col+3 }}">
                                         <select name="to_detail[{{ $sort }}]" id="to_detail[{{ $sort }}]" class="form-select" onchange="myFunction({{ $sort }},{{ $row }},{{ $max_col }})">
                                             <option value="">ไม่ระบุ</option>
                                             @foreach($group_add as $key)
@@ -132,6 +144,7 @@
             </div>
         </div>
     </div>
+    <script type="text/javascript" src="{{ asset('assets/bootstrap/js/jquery-1.7.1.min.js') }}"></script> 
     <script>
         function myFunction(sort,row,col) {            
             // console.log(document.getElementsByClassName("form-select")[sort].value);
@@ -148,25 +161,6 @@
                     if(chk_v){
                         console.log(chk_v);
                         data_select[chk_v] =1;
-                        // console.log(txt_all['up'][chk_v]); 
-                        // var chk_up = txt_all['up'][chk_v];
-                        // while (chk_up) {
-                        //     for(const [key, value] of Object.entries(txt_all['up'][chk_v])){
-                        //         console.log('k->'+key+' v->'+value);
-                        //         data_select[key] = 1;
-                        //     }
-                            
-                        // }
-                        // // console.log(txt_all['down'][chk_v]);
-                        // if(txt_all['up'][chk_v]) { 
-                        //     for(const [key, value] of Object.entries(txt_all['down'][chk_v])){
-                        //         console.log('k->'+key+' v->'+value);
-                        //         data_select[key] = 1;
-                        //     }
-                        // }
-                        // // for(var k in txt_all) {
-                        // //     console.log(k, txt_all['up'][chk_v]);
-                        // // } 
                     }
                 }
              
@@ -196,11 +190,34 @@
                         // var select2 ='<option value="">ไม่ระบุ</option>';
                         // console.log(select2)
                         var select3 ='</select>';
-                        cell[2].colSpan = (col+1);
+                        cell[2].colSpan = (col+3);
                         cell[2].innerHTML = select1+select2+select3;
                     }
                 }
             }
+        }
+
+        function handleChange(e, id, type) {
+            const {checked} = e.target;
+            if(checked){
+                chk = 'check';
+            }else{
+                chk = 'not';
+            }
+            console.log(chk);
+            // console.log(tex_search);
+            var str = window.location.href;
+            var str_1 = str.split("/").slice(0, -3).join("/")
+            // var link_url = window.location.pathname+"/chk_public?id="+id+"&chk="+chk;
+            var link_url = str_1+"/group_mail/chk_folder?id="+id+"&chk="+chk+"&type="+type;
+            // console.log(str_1);
+            // console.log(link_url);
+            // console.log(window.location);
+            // window.location = window.location.pathname+link_url;
+
+            $.get(link_url,function (data) {
+                alert(data);
+            });
         }
     </script>
 @endsection

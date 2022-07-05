@@ -9,6 +9,7 @@ use App\Models\GroupMail;
 use App\Models\GroupMailRelation;
 
 use Shuchkin\SimpleXLSX;
+use Session;
 
 class MailController extends Controller
 {
@@ -21,13 +22,23 @@ class MailController extends Controller
 
     public function index(Request $request)
     {
+        Session::put('txt_folder_search', ''); 
+        Session::put('txt_search', ''); 
+        Session::put('set_col', ''); 
+        Session::put('txt_mail', '');
+        Session::put('txt_folder', '');
+        if(!empty($request->page_main)){
+            Session::put('txt_mail_search', $request->txt_search); 
+        }
         $txt_search ='';
         $mail = array();
         $mail = new Mail;
         $mail = $mail->where('status', 1);
-        if(!empty($request->txt_search)){
-            $txt_search = $request->txt_search;       
-        //     // dd($txt_search);      
+        // if(!empty($request->txt_search)){
+        // dd(Session::get('txt_mail_search')); 
+        if(!empty(Session::get('txt_mail_search'))){
+            $txt_search = Session::get('txt_mail_search');       
+            // dd($txt_search);      
             $mail = $mail->where(function($query) use ($txt_search) {
                         $query->where('name', 'like', '%'.$txt_search.'%')
                         ->orWhere('pre_name', 'like', '%'.$txt_search.'%')
@@ -165,6 +176,71 @@ class MailController extends Controller
             $uploadfile = $destinationPath  . "/" . $name;              
             
             if ($xlsx = SimpleXLSX::parse($uploadfile)) {  
+                if(count($xlsx->rows()[0])==4){ 
+                    $mail_data = array();
+                    $query = Mail::where('status',1)->get();
+                    foreach($query as $key){
+                        $mail_data['email'][$key->email] = $key->id;
+                        if(!empty($key->pre_name))  $mail_data['pre_name'][$key->pre_name] = $key->id;
+                    }                
+                    // dd($mail_data);                 
+                    foreach ($xlsx->rows(0) as $r => $row) {                                                              
+                        if ($r > 0 && !empty(trim($row[1]))) {   
+                            // dd($row[0]);
+                            $save_mail = array();
+                            $save_mail['name'] = $row[1]; 
+                            $save_mail['pre_name'] = $row[2];                            
+                            $save_mail['email'] = $row[3];
+                            // dd($save_mail);
+                            if(empty($mail_data['pre_name'][$row[2]]) && empty($mail_data['email'][$row[3]])){
+                                Mail::create($save_mail);
+                            }else{
+                                $query = new Mail;
+                                if(!empty($mail_data['pre_name'][$row[2]]))    $$query = $query->where('pre_name', $row[2]);
+                                if(!empty($mail_data['email'][$row[3]]))   $query = $query->where('email', $row[3]);
+                                $query = $query->update($save_mail);
+                            }
+                        }
+                    }                    
+                    return back()->with('success','Updated successfully');  
+                }else{
+                    return back()->with('error','คอลัมน์เกินกว่าที่กำหนด');
+                }
+            } else {
+                echo SimpleXLSX::parseError();
+            }   
+        }else{
+            return back()->with('error','No file');
+        } 
+        
+    }
+
+    public function import_relation(Request $request) 
+    {
+        $validatedData = $request->validate([
+            'file_upload'  => 'required|mimes:xls,xlsx'
+        ]);
+
+        $requestData = $request->all();
+        $completedirectory = 'storage/app/public/upload/mail/';  
+
+        if ($request->hasFile('file_upload')) {
+            // $tmpfolder = md5(time());
+            $tmpfolder = date('Ymd');
+            if (!is_dir($completedirectory . '/' . $tmpfolder)) {
+                mkdir($completedirectory . '/' . $tmpfolder, 0777, true);
+            }  
+
+            $zipfile = $request->file('file_upload');
+            $uploadname = $zipfile->getClientOriginalName();
+            $name = md5($zipfile->getClientOriginalName() . time()) . '-upload.' . $zipfile->getClientOriginalExtension();
+            $destinationPath = public_path($completedirectory . $tmpfolder);
+            $zipfile->move($destinationPath, $name);
+
+            $uploadpath = $completedirectory . "/" . $tmpfolder  . "/" . $name;
+            $uploadfile = $destinationPath  . "/" . $name;              
+            
+            if ($xlsx = SimpleXLSX::parse($uploadfile)) {  
                 $query = Mail::where('status',1)->get();
                 foreach($query as $key){
                     $mail_data[$key->email] = $key->id;
@@ -224,6 +300,8 @@ class MailController extends Controller
                             $to_save = array();
                             $to_save['mail_id'] = $kmail;
                             $to_save['group_mail_id'] = $kgm;
+                            // $count_row = MailInGroup::where('status',1)->where('mail_id',$kmail)->count('group_mail_id',$kgm)->count();
+                            // if($count_row==0)   
                             MailInGroup::create($to_save);
                         }
                     }
@@ -238,7 +316,6 @@ class MailController extends Controller
         
     }
 
-    
     public function display($gmr_all, $key) { 
         // echo $key.'</br>';
         global $to_return;  

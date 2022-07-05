@@ -62,6 +62,7 @@ Route::resource('group_mail', GroupMailController::class);
 
 Route::get('/mail/importExportView', [MailController::class, 'importExportView'])->name('mail_import_view');
 Route::post('/mail/import', [MailController::class, 'import'])->name('mail_import');
+Route::post('/group_mail/import_relation', [MailController::class, 'import_relation'])->name('mail_import_relation');
 Route::get('/mail/destroy/{id}', [MailController::class, 'destroy'])->name('mail_del');
 Route::get('/mail/to_group/{id}', [MailController::class, 'to_group'])->name('mail.to_group');
 Route::post('/mail/group/{id}', [MailController::class, 'group'])->name('mail.group');
@@ -73,6 +74,7 @@ Route::resource('report', ReportController::class);
 
 Route::get('/folder/importExportView', [FolderController::class, 'importExportView'])->name('folder_import');
 Route::post('/folder/import', [FolderController::class, 'import'])->name('folder_to_import');
+Route::post('/folder/import_relation', [FolderController::class, 'import_relation'])->name('folder_import_relation');
 Route::get('/folder/to_group/{id}', [FolderController::class, 'to_group'])->name('folder.to_group');
 Route::get('/folder/folder_del/{id}', [FolderController::class, 'destroy'])->name('folder_del');
 Route::get('/folder/to_group/{id}', [FolderController::class, 'to_group'])->name('folder.to_group');

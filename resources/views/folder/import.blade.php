@@ -54,13 +54,40 @@
                     <div class="card-body">                        
                         <div class="row g-4 settings-section">
 	                
-                            <div class="col-12 col-md-12">
+                            <div class="col-6 col-md-6">
                                 <div class="app-card app-card-settings shadow-sm p-4">
                                     
                                     <div class="app-card-body">
                                         <form action="{{ route('folder_to_import') }}" method="POST" enctype="multipart/form-data">
                                             @csrf
                                             <div class="form-group mb-4" style="max-width: 500px; margin: 0 auto;">
+                                                <h3 class="col">{{ __('รายชื่อ Folder') }}</h3>
+                                                <div class="custom-file text-left">
+                                                    <input type="file" name="file_upload" class="custom-file-input" id="file_upload">
+                                                </div>
+                                            
+                                                <br>
+                                                <button class="btn btn-success">Import</button>
+                                                {{-- <a class="btn btn-warning" href="{{ route('quiz_export') }}">Export</a> --}}
+                                                <div class="col-auto" style="float: right; margin-right: 10%; width:50%">
+                                                    <a href="{{ asset('assets/file/folder.xlsx') }}">ตัวอย่างไฟล์..</a>
+                                                </div>
+                                                <p class="text-danger">{{ __('** หากมีค่าซ้ำเดิมจะไม่ทำงาน **') }}</p>
+                                            </div>
+                                        </form>  
+                                    </div><!--//app-card-body-->
+                                    
+                                </div><!--//app-card-->
+                            </div>
+
+                            <div class="col-6 col-md-6">
+                                <div class="app-card app-card-settings shadow-sm p-4">
+                                    
+                                    <div class="app-card-body">
+                                        <form action="{{ route('folder_import_relation') }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="form-group mb-4" style="max-width: 500px; margin: 0 auto;">
+                                                <h3 class="col">{{ __('ความสัมพันธ์ระหว่างกลุ่มกับ Folder') }}</h3>
                                                 <div class="custom-file text-left">
                                                     <input type="file" name="file_upload" class="custom-file-input" id="file_upload">
                                                 </div>
@@ -71,6 +98,7 @@
                                                 <div class="col-auto" style="float: right; margin-right: 10%; width:50%">
                                                     <a href="{{ asset('assets/file/folder_in_group.xlsx') }}">ตัวอย่างไฟล์..</a>
                                                 </div>
+                                                <p class="text-danger">{{ __('** หากเคยมีค่ากลุ่ม และ Folder แล้ว จะเป็นการ update **') }}</p>
                                             </div>
                                         </form>  
                                     </div><!--//app-card-body-->
