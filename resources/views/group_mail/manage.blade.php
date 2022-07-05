@@ -34,15 +34,6 @@
                                         $row = 0;
                                         $sort = 0;
                                     @endphp
-                                    {{-- <tr>                                
-                                        <td class="cell">{{ $sort }}</td>  
-                                        <td class="cell">
-                                            {{ $gm->name }}
-                                            @foreach($old_main as $key => $value)
-                                                <input class="old_main" type="hidden" value="{{ $value }}" id="old_main[{{ $key }}]" name ="old_main[{{ $key }}]" >
-                                            @endforeach                                            
-                                        </td>  
-                                    </tr> --}}
                                     @if(count($to_show)>0)
                                         @foreach ($to_show as $kid=>$vid)                    
                                             <tr>                                
@@ -68,19 +59,22 @@
                                             </tr>   
                                         @endforeach
                                     @endif       
-                                    @if(count($level[$sort])>0)
+                                    {{-- @if(count($level[$sort])>0) --}}
                                         <tr>                                                     
                                             <td class="cell">{{ ++$row }}</td> 
                                             <td class="cell" colspan="2">
                                                 <select name="to_detail[{{ $sort }}]" id="to_detail[{{ $sort }}]" class="form-select" onchange="myFunction({{ $sort }}, {{ $row }})">
                                                     <option value="">ไม่ระบุ</option>
-                                                    @foreach($level[$sort] as $key)
+                                                    {{-- @foreach($level[$sort] as $key)
                                                         <option value="{{ $key->id }}">{{ $key->name }}</option>
+                                                    @endforeach --}}
+                                                    @foreach($gm_status as $key=>$value)
+                                                        <option value="{{ $key }}">{{ $gm_status[$key]['name'] }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
                                         </tr>
-                                    @endif
+                                    {{-- @endif --}}
                                     <tr>
                                         <td class="cell"></td>  
                                         <td class="cell">
@@ -122,35 +116,35 @@
                 var to_notin = <?php echo json_encode($to_notin); ?>;          
                 console.log(to_notin);
 
-                var data_select = [];
+                // var data_select = [];
                 // console.log(document.getElementsByClassName("form-select")[i].value);
-                for (let i = 0; i < c_s; i++) {
+                // for (let i = 0; i < c_s; i++) {
 
-                    if(document.getElementsByClassName("form-select")[i].value){
-                        // var  test = document.getElementsByClassName("form-select")[i].value;
-                        // data_select.push(test);
-                        data_select[document.getElementsByClassName("form-select")[i].value] =1;
-                    }
-                }
-                for(const [key, value] of Object.entries(to_notin)){
-                    data_select[value] = 1;
-                }
-                for (let i = 0; i < txt_old_main; i++) {
-                    if(document.getElementsByClassName("old_main")[i].value){
-                        // var  test = document.getElementsByClassName("form-select")[i].value;
-                        // data_select.push(test);
-                        data_select[document.getElementsByClassName("old_main")[i].value] =1;
-                    }
-                }
+                //     if(document.getElementsByClassName("form-select")[i].value){
+                //         // var  test = document.getElementsByClassName("form-select")[i].value;
+                //         // data_select.push(test);
+                //         data_select[document.getElementsByClassName("form-select")[i].value] =1;
+                //     }
+                // }
+                // for(const [key, value] of Object.entries(to_notin)){
+                //     data_select[value] = 1;
+                // }
+                // for (let i = 0; i < txt_old_main; i++) {
+                //     if(document.getElementsByClassName("old_main")[i].value){
+                //         // var  test = document.getElementsByClassName("form-select")[i].value;
+                //         // data_select.push(test);
+                //         data_select[document.getElementsByClassName("old_main")[i].value] =1;
+                //     }
+                // }
                 // console.log(data_select);
                 if(document.getElementsByClassName("form-select")[(c_s-1)].value){
                     var obj = <?php echo json_encode($gm_status); ?>;
                     // console.log(obj);
                     var select2 ='<option value="">ไม่ระบุ</option>';
                     for(let key in obj){
-                        if(!data_select[key]){
+                    //     if(!data_select[key]){
                             select2 += '<option value="'+key+'">'+obj[key].name+'</option>';
-                        }
+                    //     }
                     }
                     
                     if(select2 !=='<option value="">ไม่ระบุ</option>'){

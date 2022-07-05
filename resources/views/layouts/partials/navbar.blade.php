@@ -8,18 +8,7 @@
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
           @auth
             <li><a href="{{ route('home.index') }}" class="nav-link px-2 text-secondary">Home</a></li> 
-            {{-- <li>
-                <a class="dropdown-toggle nav-link px-2 text-white" id="user-dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
-                    Mail
-                </a>
-                <ul class="dropdown-menu bg-dark" aria-labelledby="user-dropdown-toggle">
-                  <li><a href="{{ route('group_mail.index') }}" class="nav-link px-2 text-white">Set Group</a></li>
-                  <li><a href="{{ route('mail.index') }}" class="nav-link px-2 text-white">Set Mail</a></li>
-                </ul> 
-            </li>          --}}
             <li><a href="{{ route('group_mail.index') }}" class="nav-link px-2 text-white">Group</a></li>
-            {{-- <li><a href="{{ route('mail.index') }}" class="nav-link px-2 text-white">Set Mail</a></li>
-            <li><a href="{{ route('folder.index') }}" class="nav-link px-2 text-white">Drive P</a></li> --}}
             <li>
                 <a class="dropdown-toggle nav-link px-2 text-white" id="user-dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
                   Setting
@@ -41,8 +30,10 @@
         </form> --}}
   
         @auth
-          {{auth()->user()->name}}
+          {{-- {{auth()->user()->username}} --}}
           <div class="text-end">
+            {{-- <p>{{auth()->user()->username}}</p> --}}
+            {{-- <a href="{{ route('register.perform') }}" class="btn btn-warning">Sign-up</a> --}}
             <a href="{{ route('logout.perform') }}" class="btn btn-outline-light me-2">Logout</a>
             {{-- <a href="{{ route('register.perform') }}" class="btn btn-warning">Sign-up</a> --}}
           </div>

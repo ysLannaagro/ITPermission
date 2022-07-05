@@ -39,10 +39,11 @@ Route::group(['middleware' => ['auth']], function() {
     /**
      * Logout Routes
      */
+    Route::get('/register', [UserController::class, 'show_register'])->name('register.show');
+    Route::post('/register', [UserController::class, 'register'])->name('register.perform');
     Route::get('/logout', [UserController::class, 'perform'])->name('logout.perform');
 });
 
-Route::get('/group_mail/index_1', [GroupMailController::class, 'index_1'])->name('group_mail.index_1');
 Route::get('/group_mail/importExportView', [GroupMailController::class, 'importExportView'])->name('group_mail_import');
 Route::post('/group_mail/import', [GroupMailController::class, 'import'])->name('gm_import');
 Route::get('/group_mail/destroy/{id}', [GroupMailController::class, 'destroy'])->name('gm_del');

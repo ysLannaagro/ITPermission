@@ -204,48 +204,6 @@ class GroupMailController extends Controller
         return view('group_mail.index',compact('num_gm','num_m','num_f','to_return','gm_all','gm_all_show'));
     }
 
-    public function index_1(Request $request)
-    {
-        // dd($request);
-        $txt_search ='';
-        $set_col ='';
-        $gm = array();
-        // $gm = GroupMail::orderBy('status','DESC')->orderBy('name')->get();
-        $gm = new GroupMail;
-        $gm = $gm->where('status', 1);
-        if(!empty($request->txt_search)){
-            $txt_search = $request->txt_search;      
-            $gm = $gm->where('name', 'like', '%'.$txt_search.'%');
-        }  
-        if(!empty($request->set_col)){
-            $set_col = $request->set_col;   
-            if($set_col=='public')  $gm = $gm->where('set_column', 1);
-            else    $gm = $gm->where('set_column', 0);
-        }          
-        $gm = $gm->orderBy('status','DESC')->orderBy('name')->get();
-
-        $query = array();
-        $num_gm = array();
-        $query = GroupMailRelation::where('status', 1)
-            ->selectRaw('COUNT(group_mail_detail) AS group_mail_detail, group_mail_main')
-            ->groupBy('group_mail_main')
-            ->get();
-        foreach ($query as $key) {
-            $num_gm[$key->group_mail_main] = $key->group_mail_detail;
-        } 
-
-        $num_m = array();
-        $query = MailInGroup::where('status', 1)
-            ->selectRaw('group_mail_id, COUNT(mail_id) AS mail_id')
-            ->groupBy('group_mail_id')
-            ->get();
-        foreach ($query as $key) {
-            $num_m[$key->group_mail_id] = $key->mail_id;
-        }
-
-        return view('group_mail.index-old',compact('gm','txt_search','set_col','num_gm','num_m'));
-    }
-
     public function chk_public(Request $request)
     {
         $requestData = $request->all();
@@ -454,7 +412,7 @@ class GroupMailController extends Controller
     public function to_manage(Request $request, $id)
     {
         $query = array();  
-        // $gm_all = array(); 
+        $gm_all = array();   //เก็บ query สำหรับ select option
         $gm_status = array();       
         // $query = GroupMail::orderBy('name')->get();
         // foreach ($query as $key) {
@@ -484,7 +442,7 @@ class GroupMailController extends Controller
         // dd($old_main);
 
         $to_detail = array();   //หา group_mail_detail
-        $level = array();       //เก็บ query สำหรับ select option
+        // $level = array();       //เก็บ query สำหรับ select option
         $to_show = array();     //เก็บ group_mail_detail
         $to_notin = array();
         $to_notin[0] = $id; 
@@ -502,20 +460,6 @@ class GroupMailController extends Controller
             unset($notin['all'][$key]);
             $query = $this->return_search($key, $value, $key, $value, $gm_all=[],$id);
             $head_me = $query[1];
-            // if(is_array($value)){
-            //     foreach ($value as $key1 => $value1) {
-            //         if($key1==$id){
-            //             $head_me = $key;
-            //         }
-            //         if(is_array($value1)){
-            //             foreach ($value1 as $key2 => $value2) {
-            //                 if($key2==$id){
-            //                     $head_me = $key;
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
         }
         // dd($notin);
         if(!empty($head_me))    $to_notin[] = $head_me;
@@ -537,8 +481,8 @@ class GroupMailController extends Controller
         // }
 
         // dd($to_notin);
-        $level[] = GroupMail::whereNotIn('id', $to_notin)->where('status',1)->orderBy('name')->get();
-
+        // $level[] = GroupMail::whereNotIn('id', $to_notin)->where('status',1)->orderBy('name')->get();
+        // $level[] = GroupMail::where('status',1)->orderBy('name')->get();
         $i = 0;
         $to_detail = GroupMailRelation::where('group_mail_main', $id)->where('status',1)->get();
         foreach ($to_detail as $key) {
@@ -581,7 +525,7 @@ class GroupMailController extends Controller
         // }
         // dd($level);
         
-        return view('group_mail.manage', compact('gm_status','gm','level','to_show','old_main','to_notin','chk_mail'));
+        return view('group_mail.manage', compact('gm_status','gm','to_show','old_main','to_notin','chk_mail'));
     }
 
     public function manage(Request $request, $id)
