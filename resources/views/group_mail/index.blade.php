@@ -41,7 +41,7 @@ body{
                 <div class="row g-2 justify-content-start justify-content-md-end align-items-center">	
                     <div class="col-auto">
                         <form class="row mb-3 mb-lg-0 me-lg-3" method="GET" id="frm_search" action="{{ route('group_mail.index') }}">
-                            <input type="search" class="form-control form-control-dark col" id="txt_search" name="txt_search" 
+                            <input type="text" class="form-control form-control-dark col" id="txt_search" name="txt_search" 
                             placeholder="Search..." aria-label="Search" value="{{ Session::get('txt_search') }}" >
                             <select class="form-select col" name="set_col" id="set_col">
                                 <option value="">..Public mail..</option>

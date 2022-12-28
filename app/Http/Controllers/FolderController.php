@@ -263,24 +263,60 @@ class FolderController extends Controller
         
     }
     
-    public function display($gmr_all, $key) { 
-        // echo $key.'</br>';
-        global $to_return;  
-        $tr = 0;       
-        if(!empty($gmr_all['down'][$key])){  
-            foreach ($gmr_all['down'][$key] as $key1 => $value1) {
-                // echo $key1.'->'.$key1.'</br>'; 
-                $to_return[$key1] = $key1;          
-                $this->display($gmr_all, $key1);
-            }             
+    // public function display($gmr_all, $key) { 
+        // // echo $key.'</br>';
+        // global $to_return;  
+        // $tr = 0;       
+        // if(!empty($gmr_all['down'][$key])){  
+        //     foreach ($gmr_all['down'][$key] as $key1 => $value1) {
+        //         // echo $key1.'->'.$key1.'</br>'; 
+        //         $to_return[$key1] = $key1;          
+        //         $this->display($gmr_all, $key1);
+        //     }             
+        // }
+        // if(!empty($gmr_all['up'][$key])){  
+        //     foreach ($gmr_all['up'][$key] as $key1 => $value1) {
+        //         // echo $key1.'->'.$key1.'</br>'; 
+        //         $to_return[$key1] = $key1; 
+        //     }
+        // }
+        // return $to_return;  
+    public function display($a, $key1, $value1, $gmr_all) { 
+        global $newArray; 
+        global $last_loop;
+        global $num;
+        global $chk;
+        if(empty($last_loop))   $last_loop=0;
+        if(is_null($num) || $chk<>$key1){
+            $num=0;
+        }  
+        if(is_null($chk)){
+            $chk=$key1;
+        }   
+        if($a==1 && $num==0){
+            $last_loop=0;
+            $newArray[$key1][$num][0] = $value1;
         }
-        if(!empty($gmr_all['up'][$key])){  
-            foreach ($gmr_all['up'][$key] as $key1 => $value1) {
-                // echo $key1.'->'.$key1.'</br>'; 
-                $to_return[$key1] = $key1; 
+        if(!empty($gmr_all['up'][$value1])){
+            foreach ($gmr_all['up'][$value1] as $kdet => $vdet) { 
+                if($a==$last_loop+1){
+                    $newArray[$key1][$num][$a] = $kdet;   
+                }else{
+                    $num++; 
+                    for($i=0;$i<=$a;$i++){
+                        if($i < $a){
+                            $newArray[$key1][$num][$i] = $newArray[$key1][$num-1][$i]; 
+                        }else{
+                            $newArray[$key1][$num][$a] = $kdet; 
+                        }                            
+                    }
+                }                 
+                if($chk<>$key1)     $chk=$key1;                
+                $last_loop = $a;
+                $this->display($a+1, $key1, $kdet, $gmr_all);     
             }
         }
-        return $to_return;  
+        return $newArray; 
     }
 
     public function to_group($id)
@@ -301,41 +337,41 @@ class FolderController extends Controller
             $gmr_all['up'][$key->group_mail_detail][$key->group_mail_main] = $key->id;
             $gmr_all['down'][$key->group_mail_main][$key->group_mail_detail] = $key->id;
         }
-
+        // dd($gmr_all['up'][2]);
         //เป็นการหาย้อนขึ้นไป
         $folder_grorp = array();  
         $folder_grorp = FolderInGroup::where('folder_id', $id)->where('status', 1)->get();
         $loop = 0;
-        $to_down = array();
-        $set_group = array();
-        $f_r = array();
-        $row_id = array();        
-        $not_in = array();      
-        $chk_duplicate = array();
-        // $to_return = array();
+        $to_show = array();
+        // $row_id = array();
         foreach ($folder_grorp as $key) {
+            $to_show[$loop] = $key->group_mail_id;  //8, 2
+            $row_id[$loop] = $key->id;  //1, 767
+            $not_in[] = $key->group_mail_id;
+
+
             // echo $key->group_mail_id.'</br>'; 
-            $set_group[$loop][] = $key->group_mail_id;
+            // $set_group[$loop][] = $key->group_mail_id;
             $f_r[$loop]['full'] = $key->to_full;
             $f_r[$loop]['read'] = $key->to_read;
-            $row_id[$loop] = $key->id;
-            $chk_det = $key->group_mail_id;
+            // $row_id[$loop] = $key->id;
+            // $chk_det = $key->group_mail_id;
 
-            if(empty($chk_duplicate[$chk_det]))  $chk_duplicate[$chk_det] = 1;
-            else    $chk_duplicate[$chk_det] += 1;
-            $not_in[] = $chk_det;
+            // if(empty($chk_duplicate[$chk_det]))  $chk_duplicate[$chk_det] = 1;
+            // else    $chk_duplicate[$chk_det] += 1;
+            // $not_in[] = $chk_det;
 
-            while (!empty($gmr_all['up'][$chk_det])) {                    
-                foreach ($gmr_all['up'][$chk_det] as $key1 => $value1) {
-                    $chk_det = $key1;
-                    $set_group[$loop][] = $key1;
+            // while (!empty($gmr_all['up'][$chk_det])) {                    
+            //     foreach ($gmr_all['up'][$chk_det] as $key1 => $value1) {
+            //         $chk_det = $key1;
+            //         $set_group[$loop][] = $key1;
 
-                    if(empty($chk_duplicate[$chk_det]))  $chk_duplicate[$chk_det] = 1;
-                    else    $chk_duplicate[$chk_det] += 1;
-                    $not_in[] = $chk_det;
+            //         if(empty($chk_duplicate[$chk_det]))  $chk_duplicate[$chk_det] = 1;
+            //         else    $chk_duplicate[$chk_det] += 1;
+            //         $not_in[] = $chk_det;
 
-                } 
-            }
+            //     } 
+            // }
 
             // $to_return = array();
             // $i = $key->group_mail_id;
@@ -363,19 +399,44 @@ class FolderController extends Controller
                 // }
             // }
             //หาที่ถัดลงมา และสูงขึ้นไป
-            $to_down = $this->display($gmr_all, $key->group_mail_id);
+            // $to_down = $this->display($gmr_all, $key->group_mail_id);
             // print_r($to_down);
             $loop++;
         }
-
+        // dd($to_show);
+        $set_group = array();
+        $to_recursive = array();
+        foreach ($to_show as $key1 => $value1) { 
+            $to_recursive = $this->display(1, $key1, $value1, $gmr_all);
+        }
         
-        // dd($to_down);
+        // dd($to_recursive);
+        foreach ($to_recursive as $key => $value) {
+            foreach ($value as $key1 => $value1) {
+                foreach ($value1 as $key2 => $value2) {
+                    $set_group[$key][$key1][$key2] = $value2;
+                }
+            }
+        }
+            
+        $chk_duplicate = array();
+        foreach ($set_group as $key => $value) {
+            foreach ($value as $key1 => $value1) {
+                foreach ($value1 as $key2 => $value2) {
+                    if(empty($chk_duplicate[$value2]))  $chk_duplicate[$value2] = 1;
+                    else    $chk_duplicate[$value2] += 1; 
+                }
+            }
+        }
+        
+        // dd($set_group);
         
         $max_col = 0;
         foreach ($set_group as $key=>$value) {
-            if($max_col < count($set_group[$key]))    $max_col = count($set_group[$key]);
+            foreach ($value as $key1 => $value1) {
+                if($max_col < count($set_group[$key][$key1]))    $max_col = count($set_group[$key][$key1]);
+            }
         }
-        // dd($max_col);
 
         //เพิ่มกลุ่ม ต้องไม่มีกลุ่ม+หัว+หาง ของกลุ่มที่มีแล้ว
         $group_add = GroupMail::whereNotIn('id', $not_in)->where('status', 1)->orderBy('name')->get();

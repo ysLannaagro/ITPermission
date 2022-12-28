@@ -68,41 +68,54 @@
                                 @php
                                     $row = 0;
                                     $sort = 0;
+                                    $count_row = 0;
                                 @endphp
-                                @foreach ($set_group as $key=>$value)                    
-                                    <tr>                                
-                                        <td class="cell" style="text-align: center;">{{ ++$row }}</td> 
-                                        {{-- @for($i=0; $i<$max_col; $i++)
-                                            @if(!empty($set_group[$key][$max_col-($i+1)]))<td class="cell" style="width:{{ 90/$max_col }}%">{{ $gm_all[$set_group[$key][$max_col-($i+1)]] }}</td>@endif
-                                        @endfor  --}}
-                                        @php
-                                            $loop = 0; 
-                                        @endphp    
-                                        @for($i=$max_col; $i>0; $i--)                                    
-                                            @if(!empty($set_group[$key][$loop]))
-                                                <td class="cell @if($chk_duplicate[$set_group[$key][$loop]]>1) bg-danger text-white @endif">
-                                                    {{ $gm_all[$set_group[$key][$loop]] }}
-                                                </td>
-                                            @else
-                                                <td class="cell" style="text-align: left;"></td>
-                                            @endif                                        
+                                @foreach ($set_group as $key=>$value) 
+                                    @php
+                                        $c_row = 0; 
+                                    @endphp 
+                                    @foreach ($value as $key1=>$value1)                    
+                                        <tr>  
+                                            @if($c_row==0)                              
+                                                <td class="cell" style="text-align: center;" rowspan="{{ count($set_group[$key]) }}">{{ ++$row }}</td> 
+                                            @endif
                                             @php
-                                                $loop++; 
-                                            @endphp
-                                        @endfor
-                                        <td class="cell" style="text-align: left;">
-                                            <a class="text-danger" href="{{ route('mail.group_del',$row_id[$key]) }}">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                                                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
-                                                </svg>
-                                            </a>
-                                        </td>  
-                                    </tr>                                    
+                                                $loop = 0; 
+                                            @endphp    
+                                            @for($i=$max_col; $i>0; $i--)    
+                                                @if(!empty($set_group[$key][$key1][$loop]))
+                                                    <td class="cell @if($chk_duplicate[$set_group[$key][$key1][$loop]]>1) bg-danger text-white @endif">
+                                                        {{ $gm_all[$set_group[$key][$key1][$loop]] }}
+                                                    </td>
+                                                @else
+                                                    <td class="cell" style="text-align: left;"></td>
+                                                @endif                                        
+                                                @php
+                                                    $loop++; 
+                                                @endphp
+                                            @endfor
+                                            @if($c_row==0)
+                                                <td class="cell" style="text-align: left;" rowspan="{{ count($set_group[$key]) }}">
+                                                    <a class="text-danger" href="{{ route('mail.group_del',$row_id[$key]) }}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                                                        </svg>
+                                                    </a>
+                                                </td> 
+                                            @endif 
+                                        </tr> 
+                                        @php
+                                            $c_row++; 
+                                        @endphp                                     
+                                    @endforeach                                                                          
+                                    @php
+                                        $count_row = $count_row+$c_row; 
+                                    @endphp 
                                 @endforeach
                                 <tr>                                                     
                                     <td class="cell" style="text-align: center;">{{ ++$row }}</td> 
                                     <td class="cell" colspan="{{ $max_col+1 }}">
-                                        <select name="to_detail[{{ $sort }}]" id="to_detail[{{ $sort }}]" class="form-select" onchange="myFunction({{ $sort }},{{ $row }},{{ $max_col }})">
+                                        <select name="to_detail[{{ $sort }}]" id="to_detail[{{ $sort }}]" class="form-select" onchange="myFunction({{ $sort }},{{ $row }},{{ $max_col }},{{ $count_row }})">
                                             <option value="">ไม่ระบุ</option>
                                             @foreach($group_add as $key)
                                                 <option value="{{ $key->id }}">{{ $key->name }}</option>
@@ -133,7 +146,7 @@
         </div>
     </div>
     <script>
-        function myFunction(sort,row,col) {            
+        function myFunction(sort,row,col,count_row) {            
             // console.log(document.getElementsByClassName("form-select")[sort].value);
             if(document.getElementsByClassName("form-select")[sort].value){
                 var table = document.getElementById("myTable");
@@ -183,7 +196,7 @@
                         }
                     }
                     if(select2 !=='<option value="">ไม่ระบุ</option>'){
-                        var table_row = table.insertRow(row+2);
+                        var table_row = table.insertRow(count_row+3);
                         // var cell = [];
                         // //  = table_row.insertCell(0);
                         // for (let i = 0; i < col; i++) {
@@ -201,7 +214,7 @@
 
                         var cell1 = table_row.insertCell(0);
                         var cell2 = table_row.insertCell(1);
-                        var select1 = '<select name="to_detail['+(sort+1)+']" id="to_detail['+(sort+1)+']" class="form-select" onchange="myFunction('+(sort+1)+','+(row+1)+','+col+')">';
+                        var select1 = '<select name="to_detail['+(sort+1)+']" id="to_detail['+(sort+1)+']" class="form-select" onchange="myFunction('+(sort+1)+','+(row+1)+','+col+','+(count_row+1)+')">';
                         // // var select2 ='<option value="">ไม่ระบุ</option>';
                         // // console.log(select2)
                         var select3 ='</select>';
@@ -209,7 +222,7 @@
                         // cell[2].innerHTML = select1+select2+select3;
 
                         cell1.innerHTML = row+1;
-                        cell2.className = 'set_center';
+                        cell1.className = 'set_center';
                         cell2.colSpan = (col+1);
                         cell2.innerHTML = select1+select2+select3;
                     }

@@ -316,24 +316,67 @@ class MailController extends Controller
         
     }
 
-    public function display($gmr_all, $key) { 
-        // echo $key.'</br>';
-        global $to_return;  
-        $tr = 0;       
-        if(!empty($gmr_all['down'][$key])){  
-            foreach ($gmr_all['down'][$key] as $key1 => $value1) {
-                // echo $key1.'->'.$key1.'</br>'; 
-                $to_return[$key1] = $key1;          
-                $this->display($gmr_all, $key1);
-            }             
+    public function display($a, $key1, $value1, $gmr_all) { 
+        global $newArray; 
+        global $last_loop;
+        global $num;
+        global $chk;
+        if(empty($last_loop))   $last_loop=0;
+        if(is_null($num) || $chk<>$key1){
+            // echo 'chang num</br>';  //เข้าครั้งเดียว
+            $num=0;
+        }  
+        if(is_null($chk)){
+            // echo 'chang chk</br>';  //เข้าครั้งเดียว
+            $chk=$key1;
+        } 
+        // echo 'chk : '.$chk.'->key1 : '.$key1.'->value1 : '.$value1.'</br>';
+        // if($chk<>$key1){
+        //     echo '---------chk : '.$chk.'<> key1 : '.$key1.'----------------</br>';
+        //     $num=0;
+        // } 
+        // echo 'a ->'.$a.'</br>';     //นับใส่ array ตัวที่ 3 ได้        
+        if($a==1 && $num==0){
+            $last_loop=0;
+            // echo '0->'.$value1.'</br>';     //id ลำดับแรกแต่ละสาย 
+            $newArray[$key1][$num][0] = $value1;
         }
-        if(!empty($gmr_all['up'][$key])){  
-            foreach ($gmr_all['up'][$key] as $key1 => $value1) {
-                // echo $key1.'->'.$key1.'</br>'; 
-                $to_return[$key1] = $key1; 
+        if(!empty($gmr_all['up'][$value1])){
+            // echo 'start foreach</br>'; 
+            foreach ($gmr_all['up'][$value1] as $kdet => $vdet) { 
+                // echo 'next foreach</br>';
+                if($a==$last_loop+1){
+                    // echo 'key1='.$key1.', num='.$num.', a='.$a.', last_loop='.$last_loop.'+++</br>';
+                    $newArray[$key1][$num][$a] = $kdet;    
+                    // print_r($newArray); 
+                    // echo '----newArray</br>'; 
+                }else{
+                    $num++; 
+                    for($i=0;$i<=$a;$i++){
+                        // echo 'key1='.$key1.', num='.$num.', i='.$i.', a='.$a.'+++</br>';
+                        if($i <> $a){
+                            // echo $a.'+++</br>';
+                            $newArray[$key1][$num][$i] = $newArray[$key1][$num-1][$i];                             
+                            // $num++;
+                            // print_r($newArray);
+                            // echo '----newArray</br>'; 
+                        }else{
+                            // $num++; 
+                            // echo $a.'***</br>';
+                            $newArray[$key1][$num][$a] = $kdet; 
+                            // print_r($newArray);
+                            // echo '----newArray</br>'; 
+                        }                            
+                    }
+                    // print_r($newArray);
+                    // echo '----newArray</br>'; 
+                }
+                if($chk<>$key1)     $chk=$key1;
+                $last_loop = $a;
+                $this->display($a+1, $key1, $kdet, $gmr_all);     
             }
         }
-        return $to_return;  
+        return $newArray; 
     }
 
     public function to_group($id)
@@ -354,77 +397,169 @@ class MailController extends Controller
             $gmr_all['up'][$key->group_mail_detail][$key->group_mail_main] = $key->id;
             $gmr_all['down'][$key->group_mail_main][$key->group_mail_detail] = $key->id;
         }
-
+        // dd($gmr_all['up'][5]);
         //เป็นการหาย้อนขึ้นไป
         $group_mail = array();  
         $group_mail = MailInGroup::where('mail_id', $id)->where('status', 1)->get();
+        // dd($group_mail);    //8, 2
         $loop = 0;
         $to_down = array();
-        $set_group = array();
+        $to_show = array();
         $row_id = array();        
-        $not_in = array();      
-        $chk_duplicate = array();
+        $not_in = array();  
         // $to_return = array();
         foreach ($group_mail as $key) {
             // echo $key->group_mail_id.'</br>'; 
-            $set_group[$loop][] = $key->group_mail_id;
-            $row_id[$loop] = $key->id;
-            $notin = $key->group_mail_id;
-            $chk_det = $key->group_mail_id;
+            // $set_group[$loop][][] = $key->group_mail_id;
+            $to_show[$loop] = $key->group_mail_id;  //8, 2
+            $row_id[$loop] = $key->id;  //1, 767
+            $not_in[] = $key->group_mail_id;    //8, 2
+            // $chk_det = $key->group_mail_id;
 
-            if(empty($chk_duplicate[$chk_det]))  $chk_duplicate[$chk_det] = 1;
-            else    $chk_duplicate[$chk_det] += 1;
-            $not_in[] = $chk_det;
+            // if(empty($chk_duplicate[$chk_det]))  $chk_duplicate[$chk_det] = 1;
+            // else    $chk_duplicate[$chk_det] += 1; 
 
-            while (!empty($gmr_all['up'][$chk_det])) {                    
-                foreach ($gmr_all['up'][$chk_det] as $key1 => $value1) {
-                    $chk_det = $key1;
-                    $set_group[$loop][] = $key1;
-
-                    if(empty($chk_duplicate[$chk_det]))  $chk_duplicate[$chk_det] = 1;
-                    else    $chk_duplicate[$chk_det] += 1;
-                    $not_in[] = $chk_det;
-
-                } 
-            }
-
-            // $to_return = array();
-            // $i = $key->group_mail_id;
-            //ได้ชั้นเดียว ลงไปหลายชั้ยไม่ได้
-            // while (!empty($gmr_all['down'][$i])) {
-            //     foreach ($gmr_all['down'][$key->group_mail_id] as $key1 => $value1) {
-            //         $to_return[$key1] = $key1;
-            //         $i = $key1;
-            //     }
-            // }   
-
-            // if(!empty($gmr_all['down'][$key->group_mail_id])){  
-                // foreach ($gmr_all['down'][$key->group_mail_id] as $key1 => $value1) {
-                //     $to_return[$key1] = $key1; 
-                //     if(!empty($gmr_all['down'][$key1])){ 
-                //         foreach ($gmr_all['down'][$key1] as $key2 => $value1) {
-                //             $to_return[$key2] = $key2;
-                //             if(!empty($gmr_all['down'][$key2])){ 
-                //                 foreach ($gmr_all['down'][$key2] as $key3 => $value1) {
-                //                     $to_return[$key3] = $key3;
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
-            // }
-            //หาที่ถัดลงมา และสูงขึ้นไป
-            $to_down = $this->display($gmr_all, $key->group_mail_id);
-            // print_r($to_down);
             $loop++;
         }
-
+        // dd($to_show);
+        $set_group = array();
+        $to_recursive = array();
+        foreach ($to_show as $key1 => $value1) { 
+            // $set_group[$key1][0][0] = $value1;
+            $to_recursive = $this->display(1, $key1, $value1, $gmr_all);
+            // if(!empty($gmr_all['up'][$value1])){ 
+            //     $a = 1; $b = 2; $c = 3; $d = 4;
+            //     $num = 0; $num1 = 0; $num2 = 0; $num3 = 0;
+            //     $last_loop = 0;
+            //     // $num_1 = 0; $num_2 = 0; $num_3 = 0; $num_4 = 0;
+            //     foreach ($gmr_all['up'][$value1] as $kdet => $vdet) { 
+            //         // echo '1. a : '.$a.'--kdet : '.$kdet.'--num : '.$num.'</br>';
+            //         // if($num==0){
+            //         if($a==$last_loop+1 || $last_loop==1){
+            //             // echo 'set_group['.$key1.']['.$num.']['.$a.'] : '.$kdet.'</br>';
+            //             $set_group[$key1][$num][$a] = $kdet;                                
+            //         }else{
+            //             $num++;
+            //             for($i=0;$i<=$a;$i++){                            
+            //                 if($i <> $a){
+            //                     // echo 'set_group['.$key1.']['.$num.']['.$i.'] : '.$set_group[$key1][($num-1)][$i].'</br>';
+            //                     $set_group[$key1][$num][$i] = $set_group[$key1][$num-1][$i];  
+            //                 }else{
+            //                     // echo 'set_group['.$key1.']['.$num.']['.$a.'] : '.$kdet.'</br>';
+            //                     $set_group[$key1][$num][$a] = $kdet; 
+            //                 }    
+            //             }
+            //         }
+            //         $last_loop = $a;
+            //         // $to_recursive = $this->display($key1, $num, $a+1, $kdet, $gmr_all);
+            //         if(!empty($gmr_all['up'][$kdet])){ 
+            //             // $b = 2;
+            //             // $num_1 = 0;
+            //             foreach ($gmr_all['up'][$kdet] as $kdet1 => $vdet1) { 
+            //                 // echo '2. b : '.$b.'--kdet1 : '.$kdet1.'--num : '.$num.'</br>';
+            //                 // if($num1==0){
+            //                 if($b==$last_loop+1){
+            //                     // echo 'set_group['.$key1.']['.$num.']['.$b.'] : '.$kdet1.'</br>';
+            //                     $set_group[$key1][$num][$b] = $kdet1;                                
+            //                 }else{
+            //                     $num++;
+            //                     for($i=0;$i<=$b;$i++){                            
+            //                         if($i <> $b){
+            //                             // echo 'set_group['.$key1.']['.$num.']['.$i.'] : '.$set_group[$key1][($num-1)][$i].'</br>';
+            //                             $set_group[$key1][$num][$i] = $set_group[$key1][$num-1][$i];  
+            //                         }else{
+            //                             // echo 'set_group['.$key1.']['.$num.']['.$b.'] : '.$kdet1.'</br>';
+            //                             $set_group[$key1][$num][$b] = $kdet1; 
+            //                         }    
+            //                     }
+            //                     // $num = 0; $num1 = 0; $num2 = 0; $num3 = 0;
+            //                 } 
+            //                 $last_loop = $b;
+            //                 if(!empty($gmr_all['up'][$kdet1])){ 
+            //                     // $c = 3;
+            //                     // $num2 = 0;
+            //                     foreach ($gmr_all['up'][$kdet1] as $kdet2 => $vdet2) { 
+            //                         // echo '3. c : '.$c.'--kdet2 : '.$kdet2.'--num : '.$num.'</br>';
+            //                         // if($num2==0){
+            //                         if($c==$last_loop+1){
+            //                             // echo 'set_group['.$key1.']['.$num.']['.$c.'] : '.$kdet2.'</br>';
+            //                             $set_group[$key1][$num][$c] = $kdet2;                                
+            //                         }else{
+            //                             $num++;
+            //                             for($i=0;$i<=$c;$i++){                            
+            //                                 if($i <> $c){
+            //                                     // echo 'set_group['.$key1.']['.$num.']['.$i.'] : '.$set_group[$key1][($num-1)][$i].'</br>';
+            //                                     $set_group[$key1][$num][$i] = $set_group[$key1][$num-1][$i];  
+            //                                 }else{
+            //                                     // echo 'set_group['.$key1.']['.$num.']['.$c.'] : '.$kdet2.'</br>';
+            //                                     $set_group[$key1][$num][$c] = $kdet2; 
+            //                                 }    
+            //                             }
+            //                             // $num = 0; $num1 = 0; $num2 = 0; $num3 = 0;
+            //                         } 
+            //                         $last_loop = $c; 
+            //                         if(!empty($gmr_all['up'][$kdet2])){ 
+            //                             // $d = 4;
+            //                             // $num3 = 0;
+            //                             foreach ($gmr_all['up'][$kdet2] as $kdet3 => $vdet3) { 
+            //                                 // echo '4. d : '.$d.'--kdet3 : '.$kdet3.'--num : '.$num.'</br>';
+            //                                 // if($num3==0){
+            //                                 if($d==$last_loop+1){
+            //                                     // echo 'set_group['.$key1.']['.$num.']['.$d.'] : '.$kdet3.'</br>';
+            //                                     $set_group[$key1][$num][$d] = $kdet3;                                
+            //                                 }else{
+            //                                     $num++;
+            //                                     for($i=0;$i<=$d;$i++){                            
+            //                                         if($i <> $d){
+            //                                             // echo 'set_group['.$key1.']['.$num.']['.$i.'] : '.$set_group[$key1][($num-1)][$i].'</br>';
+            //                                             $set_group[$key1][$num][$i] = $set_group[$key1][$num-1][$i];  
+            //                                         }else{
+            //                                             // echo 'set_group['.$key1.']['.$num.']['.$d.'] : '.$kdet3.'</br>';
+            //                                             $set_group[$key1][$num][$d] = $kdet3; 
+            //                                         }    
+            //                                     }
+            //                                     // $num = 0; $num1 = 0; $num2 = 0; $num3 = 0;
+            //                                 }
+            //                                 $last_loop = $d;
+            //                                 // $num3++;
+            //                             }
+            //                         } 
+            //                         // $num2++;
+            //                     }
+            //                 }
+            //                 // $num1++;
+            //             }
+            //         }              
+            //         // $num++;  
+            //     }
+            // }
+        }
+        // dd($to_recursive);
+        foreach ($to_recursive as $key => $value) {
+            foreach ($value as $key1 => $value1) {
+                foreach ($value1 as $key2 => $value2) {
+                    $set_group[$key][$key1][$key2] = $value2;
+                }
+            }
+        }
+            
+        $chk_duplicate = array();
+        foreach ($set_group as $key => $value) {
+            foreach ($value as $key1 => $value1) {
+                foreach ($value1 as $key2 => $value2) {
+                    if(empty($chk_duplicate[$value2]))  $chk_duplicate[$value2] = 1;
+                    else    $chk_duplicate[$value2] += 1; 
+                }
+            }
+        }
         
-        // dd($to_down);
+        // dd($set_group);
         
         $max_col = 0;
         foreach ($set_group as $key=>$value) {
-            if($max_col < count($set_group[$key]))    $max_col = count($set_group[$key]);
+            foreach ($value as $key1 => $value1) {
+                if($max_col < count($set_group[$key][$key1]))    $max_col = count($set_group[$key][$key1]);
+            }
         }
         // dd($max_col);
 
